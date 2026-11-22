@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a84ff">
+<meta name="description" content="Private, on-device tracking of body weight and body measurements.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Health">
+<title>Health Tracker</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>Health Tracker</h1>
+  <div id="install-banner" class="install-banner hidden">
+    <span>Install on this iPad: tap <strong>Share &#8599;</strong>, then <strong>Add to Home Screen</strong>.</span>
+    <button id="install-dismiss" type="button" aria-label="Dismiss">&times;</button>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Main navigation">
+  <button class="tab active" data-view="log" type="button">Log</button>
+  <button class="tab" data-view="history" type="button">History</button>
+  <button class="tab" data-view="trends" type="button">Trends</button>
+  <button class="tab" data-view="profile" type="button">Profile</button>
+</nav>
+
+<main>
+  <section id="view-log" class="view active" aria-label="Log entry">
+    <div id="stat-cards" class="stat-cards"></div>
+    <form id="entry-form" class="card" autocomplete="off">
+      <h2 id="entry-form-title">Log entry</h2>
+      <div class="grid-2">
+        <label>Date
+          <input id="f-date" type="date" required>
+        </label>
+        <label>Time
+          <input id="f-time" type="time" required>
+        </label>
+      </div>
+      <label class="field-weight">Weight
+        <input id="f-weight" type="number" inputmode="decimal" step="0.1" min="0" placeholder="kg">
+      </label>
+      <label>Body fat % (optional)
+        <input id="f-bfat" type="number" inputmode="decimal" step="0.1" min="0" max="70" placeholder="or estimated from measurements">
+      </label>
+      <details id="measures-details">
+        <summary>Body measurements</summary>
+        <div id="measures-grid" class="measures-grid"></div>
+      </details>
+      <label>Notes
+        <textarea id="f-notes" rows="2" placeholder="How are you feeling today?"></textarea>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn primary" id="save-btn">Save entry</button>
+        <button type="button" class="btn" id="new-btn">New</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="view-history" class="view" aria-label="History">
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <section id="view-trends" class="view" aria-label="Trends">
+    <div class="card controls">
+      <label>Metric
+        <select id="t-metric"></select>
+      </label>
+      <label>Range
+        <select id="t-range">
+          <option value="30">Last 30 days</option>
+          <option value="90" selected>Last 90 days</option>
+          <option value="365">Last year</option>
+          <option value="all">All time</option>
+        </select>
+      </label>
+    </div>
+    <div class="card chart-card">
+      <canvas id="chart"></canvas>
+    </div>
+    <div id="trend-stats" class="stat-cards"></div>
+  </section>
+
+  <section id="view-profile" class="view" aria-label="Profile and data">
+    <form id="profile-form" class="card" autocomplete="off">
+      <h2>Profile</h2>
+      <label>Name
+        <input id="p-name" type="text" placeholder="Optional">
+      </label>
+      <div class="grid-2">
+        <label>Gender
+          <select id="p-gender">
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </label>
+        <label>Age
+          <input id="p-age" type="number" inputmode="numeric" min="1" max="120" placeholder="years">
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>Height
+          <input id="p-height" type="number" inputmode="decimal" step="0.1" min="0" placeholder="cm">
+        </label>
+        <label>Goal weight
+          <input id="p-goal" type="number" inputmode="decimal" step="0.1" min="0" placeholder="kg">
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>Units
+          <select id="p-units">
+            <option value="metric">Metric (kg, cm)</option>
+            <option value="imperial">Imperial (lb, in)</option>
+          </select>
+        </label>
+        <label>Theme
+          <select id="p-theme">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+      </div>
+    </form>
+    <div class="card">
+      <h2>Your data</h2>
+      <p class="muted">All data is stored only in this browser on this device. Nothing is uploaded anywhere.</p>
+      <div class="btn-row">
+        <button id="export-json" class="btn" type="button">Export JSON</button>
+        <button id="export-csv" class="btn" type="button">Export CSV</button>
+        <button id="import-json" class="btn" type="button">Import JSON</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+        <button id="clear-all" class="btn danger" type="button">Delete all data</button>
+      </div>
+      <p id="storage-info" class="muted small"></p>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <p>Private by design — your health data never leaves this device.</p>
+</footer>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="./calc.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
